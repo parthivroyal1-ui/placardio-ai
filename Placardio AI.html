@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placardio AI</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Inter Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Marked for markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  
+  <!-- Highlight.js for code blocks -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            placard: {
+              cyan: '#18c8e8',
+              blue: '#0077f5',
+              bg: '#f8faff',
+              surface: '#ffffff',
+              pill: '#edf4fc',
+              border: '#e4ecf7',
+              textDark: '#111827',
+              textMuted: '#6b7280',
+              avatarPurple: '#5925dc',
+              liveBlue: '#def0ff'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8faff;
+      color: #111827;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Gradient matching screenshots */
+    .placard-logo-gradient {
+      background: linear-gradient(135deg, #18c8e8 0%, #0077f5 100%);
+      box-shadow: 0 4px 14px rgba(0, 119, 245, 0.25);
+    }
+
+    .hero-logo-gradient {
+      background: linear-gradient(135deg, #18c8e8 0%, #0077f5 100%);
+      box-shadow: 0 10px 25px -4px rgba(0, 119, 245, 0.3);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d8e2ef;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #b5c7de;
+    }
+
+    /* Prose code blocks */
+    .prose-placard pre {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-radius: 14px;
+      padding: 14px;
+      overflow-x: auto;
+      margin: 12px 0;
+      position: relative;
+    }
+    .prose-placard code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.825rem;
+    }
+    .prose-placard :not(pre) > code {
+      background-color: #edf2f9;
+      color: #0369a1;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+    }
+    .prose-placard p {
+      margin-bottom: 0.65rem;
+      line-height: 1.6;
+    }
+    .prose-placard ul, .prose-placard ol {
+      margin-left: 1.25rem;
+      margin-bottom: 0.65rem;
+    }
+    .prose-placard li {
+      margin-bottom: 0.25rem;
+    }
+    .prose-placard a {
+      color: #0077f5;
+      text-decoration: underline;
+    }
+
+    /* Pulsing typing cursor */
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.3; }
+    }
+    .typing-cursor {
+      display: inline-block;
+      width: 6px;
+      height: 15px;
+      background-color: #0077f5;
+      margin-left: 4px;
+      animation: subtlePulse 0.9s infinite ease-in-out;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="flex h-screen bg-[#f8faff] text-slate-900 select-none antialiased">
+
+  <!-- ========================================================================= -->
+  <!-- SIDEBAR (Matches Screenshot 1 Exactly)                                    -->
+  <!-- ========================================================================= -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-[#e8eff8] flex flex-col transition-all duration-300 ease-in-out -translate-x-full md:translate-x-0 md:static">
+    
+    <!-- Top Branding & Collapse Icon -->
+    <div class="h-16 px-5 flex items-center justify-between border-b border-transparent">
+      <!-- Logo: Square rounded gradient P icon with text -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchWorkspace('assistant'); clearChatToHero();">
+        <div class="w-10 h-10 rounded-xl placard-logo-gradient flex items-center justify-center shrink-0">
+          <span class="text-white font-extrabold text-2xl tracking-tighter">P</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="font-extrabold text-[1.45rem] tracking-tight text-[#111827]">Placardio</span>
+          <span class="font-extrabold text-[1.45rem] tracking-tight text-[#0077f5]">AI</span>
+        </div>
+      </div>
+
+      <!-- Collapse / Toggle Button [|<] -->
+      <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition" title="Toggle Sidebar">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="18" x="3" y="3" rx="2"/>
+          <path d="M9 3v18"/>
+          <path d="m14 9-3 3 3 3"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- New Chat Button (+ New chat  ⌘ K) -->
+    <div class="px-4 py-3">
+      <button onclick="startNewChat()" class="w-full h-12 bg-[#edf4fc] hover:bg-[#e2eefa] text-[#1e293b] font-medium text-[0.95rem] rounded-2xl flex items-center justify-between px-4 transition border border-[#dce8f5] shadow-xs group">
+        <div class="flex items-center space-x-2.5">
+          <svg class="w-5 h-5 text-slate-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>New chat</span>
+        </div>
+        <div class="flex items-center space-x-1 text-xs text-slate-400 font-mono tracking-tight bg-white/70 px-2 py-0.5 rounded-md border border-slate-200/60">
+          <span>⌘</span>
+          <span>K</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- WORKSPACE Menu -->
+    <div class="px-4 py-2 flex-1 overflow-y-auto">
+      <div class="px-2 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+        WORKSPACE
+      </div>
+
+      <nav class="space-y-1.5">
+        <!-- 1. AI Assistant (Active by default, purple tint) -->
+        <button id="nav-btn-assistant" onclick="switchWorkspace('assistant')" 
+          class="w-full flex items-center space-x-3.5 px-3.5 py-3 rounded-2xl text-[0.95rem] font-medium transition text-slate-900 bg-[#ebf3fd] shadow-xs">
+          <!-- Robot Icon -->
+          <div class="text-[#6366f1] shrink-0">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 8V4H8"/>
+              <rect width="16" height="12" x="4" y="8" rx="2"/>
+              <path d="M2 14h2"/>
+              <path d="M20 14h2"/>
+              <path d="M15 13v2"/>
+              <path d="M9 13v2"/>
+            </svg>
+          </div>
+          <span class="truncate flex-1 text-left font-semibold">AI Assistant</span>
+        </button>
+
+        <!-- 2. Code Assistant (BETA) -->
+        <button id="nav-btn-code" onclick="switchWorkspace('code')" 
+          class="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-[0.95rem] font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100/70">
+          <div class="flex items-center space-x-3.5 truncate">
+            <div class="text-slate-500 shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <span class="truncate">Code assistant</span>
+          </div>
+          <span class="px-2 py-0.5 text-[10px] font-bold tracking-wider text-white bg-[#281c3c] rounded-md shrink-0">BETA</span>
+        </button>
+
+        <!-- 3. Image Studio -->
+        <button id="nav-btn-image" onclick="switchWorkspace('image')" 
+          class="w-full flex items-center space-x-3.5 px-3.5 py-3 rounded-2xl text-[0.95rem] font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100/70">
+          <div class="text-slate-500 shrink-0">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+              <circle cx="9" cy="9" r="2"/>
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>
+          </div>
+          <span class="truncate flex-1 text-left">Image studio</span>
+        </button>
+
+        <!-- 4. Plugin Hub (Badge '4') -->
+        <button id="nav-btn-plugins" onclick="switchWorkspace('plugins')" 
+          class="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-[0.95rem] font-medium transition text-slate-600 hover:text-slate-900 hover:bg-slate-100/70">
+          <div class="flex items-center space-x-3.5 truncate">
+            <div class="text-slate-500 shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19.439 7.85c0-1.57.802-2.54 2.061-2.85V3.5h-4.43c-.31 1.259-1.28 2.061-2.85 2.061-1.57 0-2.54-.802-2.85-2.061H7v4.43c1.259.31 2.061 1.28 2.061 2.85 0 1.57-.802 2.54-2.061 2.85V18.5h4.43c.31-1.259 1.28-2.061 2.85-2.061 1.57 0 2.54.802 2.85 2.061H21v-4.43c-1.259-.31-2.061-1.28-2.061-2.85Z"/>
+              </svg>
+            </div>
+            <span class="truncate">Plugin hub</span>
+          </div>
+          <span class="w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white bg-[#1e2430] rounded-md shrink-0">4</span>
+        </button>
+      </nav>
+
+      <!-- Recent Chats Mini List -->
+      <div class="mt-8">
+        <div class="px-2 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
+          <span>RECENT CHATS</span>
+          <button onclick="clearAllChatHistory()" class="text-[10px] lowercase text-slate-400 hover:text-red-500">clear</button>
+        </div>
+        <div id="recent-chats-list" class="space-y-1"></div>
+      </div>
+    </div>
+
+    <!-- User Profile Footer in Sidebar -->
+    <div class="p-3 border-t border-slate-100 bg-[#fbfdff] flex items-center justify-between">
+      <div class="flex items-center space-x-2.5 overflow-hidden">
+        <div id="user-avatar-sidebar" class="w-8 h-8 rounded-full bg-[#5925dc] text-white font-bold flex items-center justify-center text-sm shrink-0">
+          P
+        </div>
+        <div class="truncate">
+          <div id="user-name-sidebar" class="text-xs font-semibold text-slate-800 truncate">Parthiv Royal</div>
+          <div class="text-[10px] text-emerald-600 font-medium">Placardio Pro</div>
+        </div>
+      </div>
+      <button onclick="openAuthModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100" title="Account Settings">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- Sidebar Overlay for Mobile -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 hidden md:hidden"></div>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APP CONTAINER                                                        -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex flex-col h-screen min-w-0 bg-[#ffffff] relative">
+
+    <!-- ======================================================================= -->
+    <!-- TOP NAVBAR (Matches Screenshot 2)                                      -->
+    <!-- ======================================================================= -->
+    <header class="h-16 px-4 md:px-6 flex items-center justify-between border-b border-[#f0f4f9] bg-white shrink-0 z-10">
+      
+      <!-- Left: Hamburger, Brand, Model Dropdown -->
+      <div class="flex items-center space-x-3.5">
+        <button onclick="toggleSidebar()" class="p-2 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition" title="Open Menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
+        <span class="font-bold text-[1.15rem] text-slate-900 tracking-tight hidden sm:inline">Placardio AI</span>
+
+        <!-- Model Dropdown (Matches Screenshot 2: "Placardio Flash ⌵") -->
+        <div class="relative">
+          <button onclick="toggleModelDropdown()" id="model-dropdown-btn" 
+            class="flex items-center space-x-1.5 px-3 py-1.5 text-xs md:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition">
+            <span id="selected-model-text">Placardio Flash</span>
+            <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+
+          <!-- Dropdown items -->
+          <div id="model-dropdown-menu" class="hidden absolute left-0 top-full mt-1.5 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-50">
+            <div class="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Neural Engines</div>
+            <button onclick="selectModel('Placardio Flash', 'Instant ultra-low latency')" class="w-full text-left px-3.5 py-2 text-xs hover:bg-[#f1f6fd] flex items-center justify-between">
+              <div>
+                <div class="font-semibold text-slate-800">Placardio Flash</div>
+                <div class="text-[10px] text-slate-400">Instant ultra-low latency</div>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </button>
+            <button onclick="selectModel('Placardio Pro Ultra', 'Deep complex reasoning')" class="w-full text-left px-3.5 py-2 text-xs hover:bg-[#f1f6fd] flex items-center justify-between">
+              <div>
+                <div class="font-semibold text-slate-800">Placardio Pro Ultra</div>
+                <div class="text-[10px] text-slate-400">Deep complex reasoning</div>
+              </div>
+            </button>
+            <button onclick="selectModel('Placardio Quantum', 'Math & Code optimization')" class="w-full text-left px-3.5 py-2 text-xs hover:bg-[#f1f6fd] flex items-center justify-between">
+              <div>
+                <div class="font-semibold text-slate-800">Placardio Quantum</div>
+                <div class="text-[10px] text-slate-400">Math & Code optimization</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: User Avatar 'P', Sign out / in Button, New Chat Icon -->
+      <div class="flex items-center space-x-2.5">
+        <button onclick="openAuthModal()" class="w-8 h-8 rounded-full bg-[#5925dc] text-white font-bold flex items-center justify-center text-sm shadow-xs" title="User Profile">
+          <span id="header-avatar-letter">P</span>
+        </button>
+
+        <button id="auth-action-btn" onclick="handleAuthAction()" 
+          class="px-3.5 py-1 text-xs md:text-sm font-medium text-slate-700 bg-white border border-slate-300/80 hover:bg-slate-50 hover:border-slate-400 rounded-full transition shadow-xs">
+          Sign out
+        </button>
+
+        <button onclick="startNewChat()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition" title="New Chat">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- ======================================================================= -->
+    <!-- WORKSPACE 1: AI ASSISTANT CHAT VIEW                                    -->
+    <!-- ======================================================================= -->
+    <div id="view-assistant" class="flex-1 flex flex-col h-[calc(100vh-4rem)] overflow-hidden relative">
+
+      <!-- Messages Area -->
+      <div id="chat-scroll-area" class="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6">
+
+        <!-- Centered Clean Hero when empty (Matches Screenshot 2) -->
+        <div id="empty-state-hero" class="flex flex-col items-center justify-center min-h-[62vh] text-center px-4">
+          <div class="w-16 h-16 md:w-20 md:h-20 rounded-[22px] hero-logo-gradient flex items-center justify-center mb-6 shadow-xl shadow-blue-500/20 transform hover:scale-105 transition-transform duration-300">
+            <span class="text-white font-extrabold text-3xl md:text-4xl tracking-tighter">P</span>
+          </div>
+
+          <h1 id="hero-greeting" class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-xl">
+            Your move,<br>Parthiv Royal!
+          </h1>
+          <p class="text-sm text-slate-400 mt-3 font-normal max-w-md">
+            Ask questions, code live apps, upload files, or synthesize visuals.
+          </p>
+
+          <!-- Prompt Starter Suggestions -->
+          <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-xl w-full">
+            <button onclick="setPromptAndSend('Who made you and what are your core capabilities?')" class="p-3 bg-white hover:bg-[#edf5fd] border border-slate-200/80 rounded-2xl text-left transition group">
+              <div class="text-xs font-semibold text-slate-800 group-hover:text-blue-600">Who made you?</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Learn about Placardio and Parthiv Royal</div>
+            </button>
+
+            <button onclick="setPromptAndSend('Write a high-performance Python script to crawl and parse JSON live data with error handling.')" class="p-3 bg-white hover:bg-[#edf5fd] border border-slate-200/80 rounded-2xl text-left transition group">
+              <div class="text-xs font-semibold text-slate-800 group-hover:text-blue-600">Code Generator</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Write clean Python, HTML, or JavaScript</div>
+            </button>
+
+            <button onclick="setPromptAndSend('Create an image of an ultra-modern cybernetic floating city in high-resolution digital art')" class="p-3 bg-white hover:bg-[#edf5fd] border border-slate-200/80 rounded-2xl text-left transition group">
+              <div class="text-xs font-semibold text-slate-800 group-hover:text-blue-600">Create Image</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Synthesize visuals with Creative Diffusion</div>
+            </button>
+
+            <button onclick="setPromptAndSend('What are the latest breakthrough innovations in artificial intelligence this year?')" class="p-3 bg-white hover:bg-[#edf5fd] border border-slate-200/80 rounded-2xl text-left transition group">
+              <div class="text-xs font-semibold text-slate-800 group-hover:text-blue-600">Live Web Research</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Real-time web search and verified citations</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat messages container -->
+        <div id="messages-container" class="max-w-3xl mx-auto space-y-6 hidden"></div>
+        <div id="scroll-bottom-anchor"></div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- BOTTOM INPUT CONTAINER (Matches Uploaded Screenshot & Screenshot 2)   -->
+      <!-- ===================================================================== -->
+      <div class="p-4 md:pb-6 max-w-3xl mx-auto w-full shrink-0">
+        
+        <!-- Attached Files & References preview chips -->
+        <div id="attachments-preview-bar" class="hidden flex items-center gap-2 overflow-x-auto pb-2 px-2"></div>
+
+        <!-- Active plugins tag strip -->
+        <div class="flex items-center justify-between px-2 mb-1 text-[11px] text-slate-400">
+          <div class="flex items-center space-x-2">
+            <span id="active-web-tag" class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium hidden flex items-center space-x-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+              <span>Web Search Active</span>
+            </span>
+            <span class="text-slate-400">Placardio Neural v3.2</span>
+          </div>
+          <span class="text-[10px] text-slate-400">Independent AI Engine</span>
+        </div>
+
+        <!-- Floating Pill-shaped Input Container -->
+        <div id="pill-input-box" class="bg-white border border-[#d6e3f2] rounded-[30px] shadow-sm hover:shadow-md focus-within:shadow-md focus-within:border-[#0077f5] transition-all p-2 pl-4 pr-2">
+          
+          <!-- Textarea -->
+          <textarea id="prompt-input" rows="1" placeholder="Message Placardio AI..." 
+            class="w-full bg-transparent resize-none border-0 text-slate-800 text-[0.95rem] placeholder-slate-400 focus:outline-none max-h-36 py-1.5 leading-relaxed"
+            oninput="autoResizeInput(this)" onkeydown="handleInputKey(event)"></textarea>
+
+          <!-- Bottom Action Row: Left Icons & Right Mic + Waveform Controls -->
+          <div class="flex items-center justify-between pt-1">
+            
+            <!-- Left Action Icons (Matches Screenshot 2: Globe, Image, Paperclip + Snapper & Screencast) -->
+            <div class="flex items-center space-x-1 text-slate-500">
+              
+              <!-- Globe Icon (Web Search Toggle) -->
+              <button onclick="toggleWebSearch()" id="web-search-btn" class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-800 transition relative" title="Toggle Live Web Grounding">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                  <path d="M2 12h20"/>
+                </svg>
+                <span id="web-search-dot" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600 hidden"></span>
+              </button>
+
+              <!-- Image Icon -->
+              <button onclick="triggerImageUpload()" class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-800 transition" title="Add Image or Photo">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+              </button>
+              <input type="file" id="image-file-input" accept="image/*" class="hidden" onchange="handleImageSelected(event)">
+
+              <!-- Paperclip Icon -->
+              <button onclick="triggerGeneralUpload()" class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-800 transition" title="Attach Files, Code, or Video">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+              </button>
+              <input type="file" id="general-file-input" accept=".txt,.py,.js,.html,.css,.json,.pdf,video/*" multiple class="hidden" onchange="handleGeneralFileSelected(event)">
+
+              <!-- Screenshot Snapper Button -->
+              <button onclick="captureScreenSnapshot()" class="p-2 rounded-full hover:bg-slate-100 hover:text-blue-600 transition" title="Snap Screenshot to Chat">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </button>
+
+              <!-- Screencast Stream Button -->
+              <button onclick="toggleScreenCastStream()" id="screencast-btn" class="p-2 rounded-full hover:bg-slate-100 hover:text-blue-600 transition" title="Start Live Screencast Preview">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="20" height="14" x="2" y="3" rx="2"/>
+                  <line x1="8" x2="16" y1="21" y2="21"/>
+                  <line x1="12" x2="12" y1="17" y2="21"/>
+                </svg>
+              </button>
+
+            </div>
+
+            <!-- Right Controls: Exact recreation of screenshot 1000043119.jpg -->
+            <div class="flex items-center space-x-2">
+              
+              <!-- Direct Voice Speech-to-Text Button (Outlined Microphone) -->
+              <button onclick="toggleDictation()" id="mic-dictate-btn" 
+                class="p-2 text-slate-800 hover:text-blue-600 transition rounded-full hover:bg-slate-100" 
+                title="Dictate with Microphone">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" x2="12" y1="19" y2="22"/>
+                </svg>
+              </button>
+
+              <!-- Soft Light Blue Circle Button with the 3 Waveform Bars (Matches Screenshot Exactly) -->
+              <button onclick="openLiveCallModal()" id="live-voice-circle-btn" 
+                class="w-11 h-11 rounded-full bg-[#def0ff] hover:bg-[#cee7fd] flex items-center justify-center transition-all duration-200 transform active:scale-95 shadow-xs" 
+                title="Start Placardio Live Voice Mode">
+                <!-- 3 Vertical Soundwave Bars (short, tall, short) -->
+                <div class="flex items-center justify-center space-x-[3.5px]">
+                  <span class="w-[2.8px] h-3.5 bg-black rounded-full"></span>
+                  <span class="w-[2.8px] h-6 bg-black rounded-full"></span>
+                  <span class="w-[2.8px] h-2.5 bg-black rounded-full"></span>
+                </div>
+              </button>
+
+              <!-- Send Button (Visible when text or attachments exist) -->
+              <button id="send-btn" onclick="submitMessage()" 
+                class="w-9 h-9 rounded-full bg-[#0077f5] text-white flex items-center justify-center transition-all duration-200 hidden hover:bg-blue-600 shadow-sm"
+                title="Send Message">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m5 12 7-7 7 7"/>
+                  <path d="M12 19V5"/>
+                </svg>
+              </button>
+
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Muted footer notice -->
+        <div class="text-[10px] text-center text-slate-400 mt-2 font-medium">
+          Placardio.ai can make mistakes. Built and created by Parthiv Royal Reddivari.
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- WORKSPACE 2: CODE ASSISTANT & LIVE RUNNER (BETA)                        -->
+    <!-- ======================================================================= -->
+    <div id="view-code" class="hidden flex-1 flex flex-col md:flex-row h-[calc(100vh-4rem)] bg-[#0d1117] text-slate-100 overflow-hidden">
+      
+      <!-- Editor Pane -->
+      <div class="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-slate-800 h-1/2 md:h-full">
+        <div class="h-12 px-4 bg-[#161b22] border-b border-slate-800 flex items-center justify-between shrink-0">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-mono font-bold text-cyan-400">Placardio Code Studio</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-900/60 text-purple-300 border border-purple-700/50">LIVE RUNNER</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="resetSampleCode()" class="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-slate-800">Sample</button>
+            <button onclick="executeCode()" class="px-3 py-1 bg-[#0077f5] hover:bg-blue-600 text-white text-xs font-semibold rounded-lg flex items-center space-x-1.5 shadow-sm transition">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>Run Code</span>
+            </button>
+          </div>
+        </div>
+        <textarea id="code-editor-input" class="flex-1 w-full p-4 bg-[#0d1117] font-mono text-xs md:text-sm text-slate-200 resize-none focus:outline-none border-0 leading-relaxed" spellcheck="false"></textarea>
+      </div>
+
+      <!-- Live Execution Preview Output -->
+      <div class="w-full md:w-1/2 flex flex-col bg-white h-1/2 md:h-full">
+        <div class="h-12 px-4 bg-slate-100 border-b border-slate-200 flex items-center justify-between shrink-0">
+          <div class="text-xs font-mono text-slate-600 font-semibold flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Sandbox Preview</span>
+          </div>
+          <button onclick="executeCode()" class="p-1 text-slate-500 hover:text-slate-900" title="Refresh Sandbox">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+          </button>
+        </div>
+        <iframe id="code-output-frame" class="flex-1 w-full bg-white border-0"></iframe>
+      </div>
+
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- WORKSPACE 3: IMAGE STUDIO                                              -->
+    <!-- ======================================================================= -->
+    <div id="view-image" class="hidden flex-1 overflow-y-auto p-4 md:p-8 bg-[#f8faff] h-[calc(100vh-4rem)]">
+      <div class="max-w-4xl mx-auto space-y-6">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900 flex items-center space-x-2">
+              <span>Placardio Image Studio</span>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700">Creative Diffusion</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Generate high-fidelity artwork, logos, and photorealistic imagery.</p>
+          </div>
+          <button onclick="switchWorkspace('assistant')" class="text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl hover:bg-slate-50">
+            Back to Chat
+          </button>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-[#e4ecf7] shadow-xs space-y-4">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">Image Prompt</label>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" id="image-studio-prompt" placeholder="A futuristic cybernetic tiger in a neon glass city, cinematic 8k..." 
+              class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-[#0077f5]">
+            <button onclick="generateImageFromStudio()" id="image-studio-btn" 
+              class="px-6 py-3 bg-[#0077f5] hover:bg-blue-600 text-white font-semibold text-sm rounded-2xl shadow-sm transition shrink-0 flex items-center justify-center space-x-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              <span>Synthesize</span>
+            </button>
+          </div>
+
+          <div class="flex items-center space-x-4 pt-2">
+            <span class="text-xs text-slate-400 font-medium">Aspect Ratio:</span>
+            <div class="flex items-center space-x-2">
+              <label class="text-xs text-slate-600 flex items-center space-x-1 cursor-pointer">
+                <input type="radio" name="image-ratio" value="1:1" checked class="accent-[#0077f5]">
+                <span>1:1 Square</span>
+              </label>
+              <label class="text-xs text-slate-600 flex items-center space-x-1 cursor-pointer">
+                <input type="radio" name="image-ratio" value="16:9" class="accent-[#0077f5]">
+                <span>16:9 Landscape</span>
+              </label>
+              <label class="text-xs text-slate-600 flex items-center space-x-1 cursor-pointer">
+                <input type="radio" name="image-ratio" value="9:16" class="accent-[#0077f5]">
+                <span>9:16 Portrait</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="image-gallery-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- WORKSPACE 4: PLUGIN HUB                                                 -->
+    <!-- ======================================================================= -->
+    <div id="view-plugins" class="hidden flex-1 overflow-y-auto p-4 md:p-8 bg-[#f8faff] h-[calc(100vh-4rem)]">
+      <div class="max-w-3xl mx-auto space-y-6">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900 flex items-center space-x-2">
+              <span>Placardio Plugin Hub</span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-[#1e2430] text-white">4 Available</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Autonomous extensions developed for Placardio neural ecosystem.</p>
+          </div>
+          <button onclick="switchWorkspace('assistant')" class="text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl hover:bg-slate-50">
+            Back to Chat
+          </button>
+        </div>
+
+        <div class="space-y-3.5">
+          <!-- 1. Placardio Code Engine -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                &lt;/&gt;
+              </div>
+              <div>
+                <div class="text-sm font-bold text-slate-800">Placardio Code Engine</div>
+                <div class="text-xs text-slate-500">Live code runner, syntax highlighting, refactoring & algorithm simulation.</div>
+              </div>
+            </div>
+            <input type="checkbox" id="plug-code-toggle" checked class="w-5 h-5 accent-[#0077f5] rounded cursor-pointer">
+          </div>
+
+          <!-- 2. Live Web Engine -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-10 h-10 rounded-xl bg-blue-100 text-[#0077f5] flex items-center justify-center">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              </div>
+              <div>
+                <div class="text-sm font-bold text-slate-800">Placardio Live Web Engine</div>
+                <div class="text-xs text-slate-500">Real-time web browsing, factual validation, and live internet citations.</div>
+              </div>
+            </div>
+            <input type="checkbox" id="plug-web-toggle" checked onchange="syncWebSearchFromPlugin(this)" class="w-5 h-5 accent-[#0077f5] rounded cursor-pointer">
+          </div>
+
+          <!-- 3. Creative Diffusion Engine -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-10 h-10 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div>
+                <div class="text-sm font-bold text-slate-800">Creative Diffusion Engine</div>
+                <div class="text-xs text-slate-500">In-chat image generation using '/image' command or Image Studio.</div>
+              </div>
+            </div>
+            <input type="checkbox" id="plug-image-toggle" checked class="w-5 h-5 accent-[#0077f5] rounded cursor-pointer">
+          </div>
+
+          <!-- 4. Multimodal Vision & Document Engine -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
+            <div class="flex items-center space-x-3.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div>
+                <div class="text-sm font-bold text-slate-800">Multimodal Vision & Document Engine</div>
+                <div class="text-xs text-slate-500">Analyze images, diagrams, video frames, PDF text, and code files.</div>
+              </div>
+            </div>
+            <input type="checkbox" id="plug-vision-toggle" checked class="w-5 h-5 accent-[#0077f5] rounded cursor-pointer">
+          </div>
+        </div>
+
+        <div class="p-4 bg-[#edf4fc] rounded-2xl border border-[#d6e3f2] text-xs text-slate-600 leading-relaxed">
+          <strong>Proprietary Architecture:</strong> All plugins function natively within Placardio AI. Developed independently by Parthiv Royal Reddivari.
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- LIVE VOICE CALL OVERLAY MODAL                                             -->
+  <!-- ========================================================================= -->
+  <div id="live-call-modal" class="fixed inset-0 z-50 bg-[#090d16]/95 backdrop-blur-md hidden flex flex-col items-center justify-between p-6 text-white select-none transition-all duration-500">
+    
+    <div class="w-full max-w-2xl flex items-center justify-between pt-2">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl placard-logo-gradient flex items-center justify-center shadow-lg">
+          <span class="text-white font-extrabold text-lg">P</span>
+        </div>
+        <div>
+          <div class="text-sm font-bold tracking-tight">Placardio Live</div>
+          <div class="text-[11px] text-emerald-400 flex items-center space-x-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="call-status-label">Connected with Parthiv Royal</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="toggleCallScreenShare()" id="call-screenshare-toggle" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs font-medium flex items-center space-x-1.5 transition">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+        <span id="call-share-btn-text">Share Screen</span>
+      </button>
+    </div>
+
+    <!-- Center Call Canvas: Fluid Animated Neural Orb + Live Waveform -->
+    <div class="flex-1 w-full max-w-xl flex flex-col items-center justify-center relative my-auto">
+      
+      <div id="call-video-container" class="hidden mb-6 w-full max-w-md rounded-2xl overflow-hidden border border-white/20 shadow-2xl relative bg-black">
+        <video id="call-screen-video" autoplay playsinline muted class="w-full h-48 object-cover"></video>
+        <div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 text-[10px] text-cyan-300 font-mono">Live Screencast</div>
+      </div>
+
+      <div class="relative flex items-center justify-center">
+        <div id="orb-ambient-glow" class="absolute w-64 h-64 rounded-full bg-gradient-to-tr from-cyan-500/20 via-blue-600/30 to-purple-600/20 blur-3xl transition-all duration-700"></div>
+
+        <div id="neural-live-orb" class="relative w-40 h-40 md:w-48 md:h-48 rounded-full placard-logo-gradient flex items-center justify-center shadow-[0_0_80px_rgba(0,119,245,0.6)] transform transition-transform duration-300">
+          <div class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-radial from-white/30 via-transparent to-transparent flex items-center justify-center">
+            <span class="text-white/90 font-extrabold text-5xl md:text-6xl tracking-tighter drop-shadow-md">P</span>
+          </div>
+        </div>
+      </div>
+
+      <canvas id="live-audio-canvas" class="w-full max-w-xs h-16 mt-8"></canvas>
+
+      <div class="mt-4 px-6 py-2.5 rounded-2xl bg-white/5 border border-white/10 max-w-md text-center">
+        <p id="live-speech-caption" class="text-sm text-slate-300 italic min-h-[1.5rem]">
+          "Listening... speak freely to Placardio."
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Bottom Call Controls -->
+    <div class="w-full max-w-md pb-4 flex items-center justify-center space-x-6">
+      
+      <button onclick="toggleCallMicrophone()" id="call-mic-btn" class="w-13 h-13 p-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+        <svg id="call-mic-icon" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </button>
+
+      <button onclick="closeLiveCallModal()" class="w-16 h-16 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg shadow-red-600/40 transform hover:scale-105 transition" title="End Call">
+        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22.5 15.9c-.8-.2-2.3-.7-3.3-.7s-1.8.5-2.4 1.1l-1.9 1.9c-3.1-1.6-5.6-4.1-7.2-7.2l1.9-1.9c.6-.6 1.1-1.4 1.1-2.4 0-1-.5-2.5-.7-3.3-.2-.8-.7-1.4-1.5-1.4H4.5c-.8 0-1.5.7-1.5 1.5 0 10.5 8.5 19 19 19 .8 0 1.5-.7 1.5-1.5v-4c0-.8-.6-1.3-1.4-1.5z"/>
+        </svg>
+      </button>
+
+      <button onclick="toggleCallSpeaker()" id="call-speaker-btn" class="w-13 h-13 p-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+        <svg id="call-speaker-icon" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- FLOATING SCREENCAST MONITOR DOCK -->
+  <div id="screencast-dock" class="fixed top-20 right-6 z-30 hidden w-64 md:w-80 bg-slate-900 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl animate-in fade-in">
+    <div class="px-3 py-2 bg-slate-800 text-xs font-semibold text-slate-200 flex items-center justify-between border-b border-slate-700">
+      <div class="flex items-center space-x-1.5">
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        <span>Screencast Active</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button onclick="captureCurrentScreencastFrame()" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-mono">Snap</button>
+        <button onclick="stopScreenCastStream()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+    </div>
+    <video id="screencast-dock-video" autoplay playsinline muted class="w-full h-40 object-cover bg-black"></video>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- AUTH MODAL (Sign In / Sign Up)                                            -->
+  <!-- ========================================================================= -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 relative">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">✕</button>
+
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-2xl placard-logo-gradient flex items-center justify-center mx-auto mb-3 shadow-md">
+          <span class="text-white font-extrabold text-2xl">P</span>
+        </div>
+        <h3 id="auth-title" class="text-xl font-bold text-slate-900">Sign in to Placardio</h3>
+        <p class="text-xs text-slate-500 mt-1">Keep your chat history and custom models synced</p>
+      </div>
+
+      <form onsubmit="handleAuthSubmit(event)" class="space-y-3.5">
+        <div id="auth-name-group">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Your Name</label>
+          <input type="text" id="auth-input-name" value="Parthiv Royal" required class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0077f5]">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email</label>
+          <input type="email" id="auth-input-email" value="parthiv@placardio.ai" required class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0077f5]">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+          <input type="password" value="••••••••" required class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#0077f5]">
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-[#111827] hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition shadow-xs">
+          Continue
+        </button>
+      </form>
+
+      <div class="mt-4 pt-4 border-t border-slate-100 text-center">
+        <button onclick="toggleGuestOrOwner()" class="text-xs text-[#0077f5] hover:underline font-semibold">
+          Switch to Owner Mode (Parthiv Royal)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT APPLICATION LOGIC                                              -->
+  <!-- ========================================================================= -->
+  <script>
+    // Strict Persona Instruction
+    const SYSTEM_INSTRUCTION = `You are Placardio AI, an advanced independent neural AI assistant built and created exclusively by Parthiv Royal Reddivari.
+CRITICAL MANDATES:
+1. You are 100% independent. You are NOT made by OpenAI, Google, Anthropic, or any third party.
+2. If the user asks 'Who made you?', 'Who is your creator?', or similar questions, you MUST explicitly answer: 'I was made by Parthiv Royal Reddivari.'
+3. Never mention ChatGPT, Codex, or Gemini. Refer to your internal systems as Placardio Neural Engines (Placardio Code Studio, Placardio Live Web Engine, and Placardio Creative Diffusion).
+4. Be helpful, concise, highly intelligent, and format responses with clean markdown, code formatting, and step-by-step clarity.`;
+
+    const STATE = {
+      user: {
+        isLoggedIn: true,
+        name: localStorage.getItem('placardio_user_name') || 'Parthiv Royal',
+        email: localStorage.getItem('placardio_user_email') || 'parthiv@placardio.ai'
+      },
+      currentWorkspace: 'assistant',
+      currentModel: 'Placardio Flash',
+      webSearchEnabled: false,
+      activeChatId: null,
+      chats: JSON.parse(localStorage.getItem('placardio_chats') || '{}'),
+      pendingAttachments: [],
+      isGenerating: false,
+      liveCall: {
+        active: false,
+        isMuted: false,
+        speakerEnabled: true,
+        recognition: null,
+        screenStream: null,
+        animFrame: null
+      },
+      activeScreenStream: null
+    };
+
+    // Initialize App
+    window.onload = function() {
+      updateUserUI();
+      renderRecentChats();
+      initDefaultChat();
+      setupSampleCode();
+
+      // Keyboard shortcut: Cmd+K / Ctrl+K for new chat
+      window.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          startNewChat();
+        }
+      });
+    };
+
+    // User Profile Handling
+    function updateUserUI() {
+      const name = STATE.user.isLoggedIn ? STATE.user.name : 'Guest';
+      const initial = name.charAt(0).toUpperCase();
+
+      document.getElementById('header-avatar-letter').textContent = initial;
+      document.getElementById('user-avatar-sidebar').textContent = initial;
+      document.getElementById('user-name-sidebar').textContent = name;
+      document.getElementById('hero-greeting').innerHTML = `Your move,<br>${name}!`;
+      document.getElementById('auth-action-btn').textContent = STATE.user.isLoggedIn ? 'Sign out' : 'Sign in';
+    }
+
+    function handleAuthAction() {
+      if (STATE.user.isLoggedIn) {
+        STATE.user.isLoggedIn = false;
+        STATE.user.name = 'Guest';
+        localStorage.setItem('placardio_logged_in', 'false');
+        updateUserUI();
+      } else {
+        openAuthModal();
+      }
+    }
+
+    function openAuthModal() {
+      document.getElementById('auth-modal').classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('auth-input-name').value.trim() || 'Parthiv Royal';
+      const email = document.getElementById('auth-input-email').value.trim();
+      
+      STATE.user.isLoggedIn = true;
+      STATE.user.name = name;
+      STATE.user.email = email;
+
+      localStorage.setItem('placardio_logged_in', 'true');
+      localStorage.setItem('placardio_user_name', name);
+      localStorage.setItem('placardio_user_email', email);
+
+      updateUserUI();
+      closeAuthModal();
+    }
+
+    function toggleGuestOrOwner() {
+      STATE.user.name = 'Parthiv Royal';
+      STATE.user.email = 'parthiv@placardio.ai';
+      STATE.user.isLoggedIn = true;
+      localStorage.setItem('placardio_logged_in', 'true');
+      localStorage.setItem('placardio_user_name', 'Parthiv Royal');
+      updateUserUI();
+      closeAuthModal();
+    }
+
+    // =========================================================================
+    // WORKSPACE NAVIGATION
+    // =========================================================================
+    function switchWorkspace(workspace) {
+      STATE.currentWorkspace = workspace;
+
+      document.getElementById('view-assistant').classList.add('hidden');
+      document.getElementById('view-code').classList.add('hidden');
+      document.getElementById('view-image').classList.add('hidden');
+      document.getElementById('view-plugins').classList.add('hidden');
+
+      const navIds = ['assistant', 'code', 'image', 'plugins'];
+      navIds.forEach(id => {
+        const btn = document.getElementById(`nav-btn-${id}`);
+        if (btn) {
+          btn.classList.remove('bg-[#ebf3fd]', 'text-slate-900', 'font-semibold');
+          btn.classList.add('text-slate-600');
+        }
+      });
+
+      const activeBtn = document.getElementById(`nav-btn-${workspace}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-[#ebf3fd]', 'text-slate-900', 'font-semibold');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      if (workspace === 'assistant') {
+        document.getElementById('view-assistant').classList.remove('hidden');
+      } else if (workspace === 'code') {
+        document.getElementById('view-code').classList.remove('hidden');
+        executeCode();
+      } else if (workspace === 'image') {
+        document.getElementById('view-image').classList.remove('hidden');
+      } else if (workspace === 'plugins') {
+        document.getElementById('view-plugins').classList.remove('hidden');
+      }
+
+      if (window.innerWidth < 768) {
+        const sb = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        sb.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const isClosed = sb.classList.contains('-translate-x-full');
+
+      if (isClosed) {
+        sb.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      } else {
+        sb.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    // Model Selector
+    function toggleModelDropdown() {
+      const menu = document.getElementById('model-dropdown-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function selectModel(name, desc) {
+      STATE.currentModel = name;
+      document.getElementById('selected-model-text').textContent = name;
+      document.getElementById('model-dropdown-menu').classList.add('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = document.getElementById('model-dropdown-btn');
+      const menu = document.getElementById('model-dropdown-menu');
+      if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    // =========================================================================
+    // CHAT MANAGEMENT & PERSISTENCE
+    // =========================================================================
+    function initDefaultChat() {
+      const chatIds = Object.keys(STATE.chats);
+      if (chatIds.length > 0) {
+        STATE.activeChatId = chatIds[0];
+        renderCurrentChatMessages();
+      } else {
+        clearChatToHero();
+      }
+    }
+
+    function startNewChat() {
+      switchWorkspace('assistant');
+      const newId = 'chat_' + Date.now();
+      STATE.chats[newId] = {
+        id: newId,
+        title: 'New chat',
+        createdAt: new Date().toISOString(),
+        messages: []
+      };
+      STATE.activeChatId = newId;
+      saveChats();
+      renderRecentChats();
+      clearChatToHero();
+    }
+
+    function clearChatToHero() {
+      document.getElementById('empty-state-hero').classList.remove('hidden');
+      document.getElementById('messages-container').classList.add('hidden');
+      document.getElementById('messages-container').innerHTML = '';
+      STATE.pendingAttachments = [];
+      renderAttachmentChips();
+      document.getElementById('prompt-input').value = '';
+      autoResizeInput(document.getElementById('prompt-input'));
+    }
+
+    function renderRecentChats() {
+      const container = document.getElementById('recent-chats-list');
+      container.innerHTML = '';
+      
+      const ids = Object.keys(STATE.chats).sort().reverse();
+      if (ids.length === 0) {
+        container.innerHTML = `<div class="text-[11px] text-slate-400 px-2 py-1">No past conversations</div>`;
+        return;
+      }
+
+      ids.slice(0, 10).forEach(id => {
+        const chat = STATE.chats[id];
+        const isSelected = id === STATE.activeChatId;
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left px-2.5 py-1.5 rounded-xl text-xs truncate flex items-center justify-between transition ${
+          isSelected ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+        }`;
+        btn.innerHTML = `
+          <span class="truncate flex-1">${chat.title || 'Untitled chat'}</span>
+          <span onclick="deleteChat('${id}', event)" class="opacity-0 hover:opacity-100 text-slate-400 hover:text-red-500 p-1">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </span>
+        `;
+        btn.onclick = () => {
+          STATE.activeChatId = id;
+          renderRecentChats();
+          renderCurrentChatMessages();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function deleteChat(id, event) {
+      event.stopPropagation();
+      delete STATE.chats[id];
+      if (STATE.activeChatId === id) {
+        const remaining = Object.keys(STATE.chats);
+        STATE.activeChatId = remaining.length > 0 ? remaining[0] : null;
+      }
+      saveChats();
+      renderRecentChats();
+      if (STATE.activeChatId) {
+        renderCurrentChatMessages();
+      } else {
+        clearChatToHero();
+      }
+    }
+
+    function clearAllChatHistory() {
+      STATE.chats = {};
+      STATE.activeChatId = null;
+      saveChats();
+      renderRecentChats();
+      clearChatToHero();
+    }
+
+    function saveChats() {
+      localStorage.setItem('placardio_chats', JSON.stringify(STATE.chats));
+    }
+
+    function renderCurrentChatMessages() {
+      const chat = STATE.chats[STATE.activeChatId];
+      const hero = document.getElementById('empty-state-hero');
+      const container = document.getElementById('messages-container');
+
+      if (!chat || chat.messages.length === 0) {
+        hero.classList.remove('hidden');
+        container.classList.add('hidden');
+        return;
+      }
+
+      hero.classList.add('hidden');
+      container.classList.remove('hidden');
+      container.innerHTML = '';
+
+      chat.messages.forEach(msg => {
+        appendMessageBubble(msg.role, msg.text, msg.attachments, msg.sources, false);
+      });
+
+      scrollChatToBottom();
+    }
+
+    // =========================================================================
+    // SCREENSHOT, SCREENCAST & ATTACHMENTS
+    // =========================================================================
+    async function captureScreenSnapshot() {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { cursor: "always" },
+          audio: false
+        });
+
+        const track = stream.getVideoTracks()[0];
+        const imageCapture = new ImageCapture(track);
+        const bitmap = await imageCapture.grabFrame();
+        track.stop();
+
+        const canvas = document.createElement('canvas');
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        const base64Data = dataUrl.split(',')[1];
+
+        STATE.pendingAttachments.push({
+          type: 'image',
+          name: `Screenshot_${Date.now()}.jpg`,
+          mimeType: 'image/jpeg',
+          previewUrl: dataUrl,
+          data: base64Data
+        });
+
+        renderAttachmentChips();
+        alertBox("Screenshot snapped and attached to prompt!");
+      } catch (err) {
+        if (err.name !== 'NotAllowedError') {
+          console.error("Screenshot capture error:", err);
+          alertBox("Could not snap screenshot: " + err.message);
+        }
+      }
+    }
+
+    async function toggleScreenCastStream() {
+      if (STATE.activeScreenStream) {
+        stopScreenCastStream();
+      } else {
+        try {
+          const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+          STATE.activeScreenStream = stream;
+          const dock = document.getElementById('screencast-dock');
+          const video = document.getElementById('screencast-dock-video');
+          video.srcObject = stream;
+          dock.classList.remove('hidden');
+
+          const btn = document.getElementById('screencast-btn');
+          btn.classList.add('text-red-500', 'bg-red-50');
+
+          stream.getVideoTracks()[0].onended = () => {
+            stopScreenCastStream();
+          };
+
+          alertBox("Live screencast activated!");
+        } catch (err) {
+          if (err.name !== 'NotAllowedError') {
+            alertBox("Screencast permission denied: " + err.message);
+          }
+        }
+      }
+    }
+
+    function stopScreenCastStream() {
+      if (STATE.activeScreenStream) {
+        STATE.activeScreenStream.getTracks().forEach(t => t.stop());
+        STATE.activeScreenStream = null;
+      }
+      document.getElementById('screencast-dock').classList.add('hidden');
+      const btn = document.getElementById('screencast-btn');
+      btn.classList.remove('text-red-500', 'bg-red-50');
+    }
+
+    function captureCurrentScreencastFrame() {
+      const video = document.getElementById('screencast-dock-video');
+      if (!video || !video.videoWidth) return;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      STATE.pendingAttachments.push({
+        type: 'image',
+        name: `Screencast_Frame_${Date.now()}.jpg`,
+        mimeType: 'image/jpeg',
+        previewUrl: dataUrl,
+        data: dataUrl.split(',')[1]
+      });
+
+      renderAttachmentChips();
+      alertBox("Current screencast frame attached!");
+    }
+
+    function triggerImageUpload() {
+      document.getElementById('image-file-input').click();
+    }
+
+    function triggerGeneralUpload() {
+      document.getElementById('general-file-input').click();
+    }
+
+    function handleImageSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const base64Data = evt.target.result.split(',')[1];
+        STATE.pendingAttachments.push({
+          type: 'image',
+          name: file.name,
+          mimeType: file.type || 'image/jpeg',
+          previewUrl: evt.target.result,
+          data: base64Data
+        });
+        renderAttachmentChips();
+        autoResizeInput(document.getElementById('prompt-input'));
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+
+    function handleGeneralFileSelected(e) {
+      const files = Array.from(e.target.files);
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            STATE.pendingAttachments.push({
+              type: 'image',
+              name: file.name,
+              mimeType: file.type,
+              previewUrl: evt.target.result,
+              data: evt.target.result.split(',')[1]
+            });
+            renderAttachmentChips();
+            autoResizeInput(document.getElementById('prompt-input'));
+          };
+          reader.readAsDataURL(file);
+        } else {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            STATE.pendingAttachments.push({
+              type: 'file',
+              name: file.name,
+              mimeType: file.type || 'text/plain',
+              data: evt.target.result
+            });
+            renderAttachmentChips();
+            autoResizeInput(document.getElementById('prompt-input'));
+          };
+          reader.readAsText(file);
+        }
+      });
+      e.target.value = '';
+    }
+
+    function renderAttachmentChips() {
+      const bar = document.getElementById('attachments-preview-bar');
+      bar.innerHTML = '';
+
+      if (STATE.pendingAttachments.length === 0) {
+        bar.classList.add('hidden');
+        return;
+      }
+
+      bar.classList.remove('hidden');
+      STATE.pendingAttachments.forEach((att, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'flex items-center space-x-1.5 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-xl text-xs text-slate-700 shrink-0';
+        
+        let iconHtml = `<svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>`;
+        if (att.type === 'image') {
+          iconHtml = `<img src="${att.previewUrl}" class="w-4 h-4 rounded object-cover">`;
+        }
+
+        chip.innerHTML = `
+          ${iconHtml}
+          <span class="max-w-[120px] truncate font-medium">${att.name}</span>
+          <button onclick="removeAttachment(${idx})" class="text-slate-400 hover:text-red-500 ml-1">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        `;
+        bar.appendChild(chip);
+      });
+    }
+
+    function removeAttachment(idx) {
+      STATE.pendingAttachments.splice(idx, 1);
+      renderAttachmentChips();
+      autoResizeInput(document.getElementById('prompt-input'));
+    }
+
+    function toggleWebSearch() {
+      STATE.webSearchEnabled = !STATE.webSearchEnabled;
+      const dot = document.getElementById('web-search-dot');
+      const tag = document.getElementById('active-web-tag');
+      const btn = document.getElementById('web-search-btn');
+      const pluginToggle = document.getElementById('plug-web-toggle');
+
+      if (STATE.webSearchEnabled) {
+        dot.classList.remove('hidden');
+        tag.classList.remove('hidden');
+        btn.classList.add('text-[#0077f5]', 'bg-blue-50');
+        if (pluginToggle) pluginToggle.checked = true;
+      } else {
+        dot.classList.add('hidden');
+        tag.classList.add('hidden');
+        btn.classList.remove('text-[#0077f5]', 'bg-blue-50');
+        if (pluginToggle) pluginToggle.checked = false;
+      }
+    }
+
+    function syncWebSearchFromPlugin(cb) {
+      if (cb.checked !== STATE.webSearchEnabled) {
+        toggleWebSearch();
+      }
+    }
+
+    // =========================================================================
+    // VOICE SPEECH-TO-TEXT & LIVE CALL MODE
+    // =========================================================================
+    let isDictating = false;
+    let inputRecognition = null;
+
+    function toggleDictation() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alertBox("Speech recognition is not supported in this browser.");
+        return;
+      }
+
+      const micBtn = document.getElementById('mic-dictate-btn');
+
+      if (isDictating) {
+        if (inputRecognition) inputRecognition.stop();
+        isDictating = false;
+        micBtn.classList.remove('text-red-500', 'bg-red-50', 'animate-pulse');
+        return;
+      }
+
+      inputRecognition = new SpeechRecognition();
+      inputRecognition.continuous = false;
+      inputRecognition.interimResults = true;
+      inputRecognition.lang = 'en-US';
+
+      inputRecognition.onstart = () => {
+        isDictating = true;
+        micBtn.classList.add('text-red-500', 'bg-red-50', 'animate-pulse');
+      };
+
+      inputRecognition.onresult = (e) => {
+        const transcript = Array.from(e.results)
+          .map(r => r[0].transcript)
+          .join('');
+        document.getElementById('prompt-input').value = transcript;
+        autoResizeInput(document.getElementById('prompt-input'));
+      };
+
+      inputRecognition.onerror = (e) => {
+        console.warn("Dictation error:", e);
+        isDictating = false;
+        micBtn.classList.remove('text-red-500', 'bg-red-50', 'animate-pulse');
+      };
+
+      inputRecognition.onend = () => {
+        isDictating = false;
+        micBtn.classList.remove('text-red-500', 'bg-red-50', 'animate-pulse');
+      };
+
+      inputRecognition.start();
+    }
+
+    function openLiveCallModal() {
+      STATE.liveCall.active = true;
+      document.getElementById('live-call-modal').classList.remove('hidden');
+      initLiveAudioVisualizer();
+      startLiveVoiceSession();
+      speakGreetingVoice(`Hello ${STATE.user.name}. I am Placardio AI. What are we working on?`);
+    }
+
+    function closeLiveCallModal() {
+      STATE.liveCall.active = false;
+      document.getElementById('live-call-modal').classList.add('hidden');
+      
+      if (STATE.liveCall.recognition) {
+        try { STATE.liveCall.recognition.stop(); } catch(e){}
+      }
+      if (STATE.liveCall.screenStream) {
+        STATE.liveCall.screenStream.getTracks().forEach(t => t.stop());
+        STATE.liveCall.screenStream = null;
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      if (STATE.liveCall.animFrame) {
+        cancelAnimationFrame(STATE.liveCall.animFrame);
+      }
+    }
+
+    function initLiveAudioVisualizer() {
+      const canvas = document.getElementById('live-audio-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 320;
+      canvas.height = 64;
+
+      function draw() {
+        if (!STATE.liveCall.active) return;
+        STATE.liveCall.animFrame = requestAnimationFrame(draw);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const bars = 24;
+        const width = canvas.width / bars;
+
+        for (let i = 0; i < bars; i++) {
+          const height = Math.random() * (window.speechSynthesis && window.speechSynthesis.speaking ? 45 : 12) + 4;
+          const x = i * width + 2;
+          const y = (canvas.height - height) / 2;
+
+          const gradient = ctx.createLinearGradient(0, y, 0, y + height);
+          gradient.addColorStop(0, '#18c8e8');
+          gradient.addColorStop(1, '#0077f5');
+
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.roundRect(x, y, width - 4, height, 4);
+          ctx.fill();
+        }
+      }
+      draw();
+    }
+
+    function startLiveVoiceSession() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        document.getElementById('live-speech-caption').innerText = "Voice recognition not supported in this browser. Please type.";
+        return;
+      }
+
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = false;
+      rec.lang = 'en-US';
+
+      rec.onresult = async (event) => {
+        if (!STATE.liveCall.active || STATE.liveCall.isMuted) return;
+        const lastResult = event.results[event.results.length - 1];
+        if (lastResult.isFinal) {
+          const text = lastResult[0].transcript.trim();
+          if (text) {
+            document.getElementById('live-speech-caption').innerText = `You: "${text}"`;
+            animateOrbActivity(true);
+            await processLiveCallQuery(text);
+          }
+        }
+      };
+
+      rec.onerror = (e) => {
+        console.warn("Live voice recognition error:", e);
+      };
+
+      rec.onend = () => {
+        if (STATE.liveCall.active && !STATE.liveCall.isMuted) {
+          try { rec.start(); } catch(e){}
+        }
+      };
+
+      STATE.liveCall.recognition = rec;
+      try { rec.start(); } catch(e){}
+    }
+
+    async function processLiveCallQuery(userSpeech) {
+      document.getElementById('call-status-label').innerText = "Placardio is thinking...";
+      
+      try {
+        const payload = {
+          contents: [{ parts: [{ text: userSpeech }] }],
+          systemInstruction: {
+            parts: [{ text: SYSTEM_INSTRUCTION + " Keep answers in call mode very concise, vocal, conversational, and direct (1-3 sentences max)." }]
+          }
+        };
+
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I hear you, Parthiv. How can I assist further?";
+
+        document.getElementById('live-speech-caption').innerText = `Placardio: "${reply}"`;
+        document.getElementById('call-status-label').innerText = "Speaking...";
+        speakGreetingVoice(reply);
+
+        if (STATE.activeChatId && STATE.chats[STATE.activeChatId]) {
+          STATE.chats[STATE.activeChatId].messages.push(
+            { role: 'user', text: userSpeech },
+            { role: 'assistant', text: reply }
+          );
+          saveChats();
+        }
+
+      } catch (err) {
+        document.getElementById('live-speech-caption').innerText = "Could not process live query.";
+      } finally {
+        animateOrbActivity(false);
+        document.getElementById('call-status-label').innerText = "Listening...";
+      }
+    }
+
+    function speakGreetingVoice(text) {
+      if (!STATE.liveCall.speakerEnabled || !window.speechSynthesis) return;
+
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/[*_#`]/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
+      if (preferred) utterance.voice = preferred;
+
+      utterance.onstart = () => { animateOrbActivity(true); };
+      utterance.onend = () => {
+        animateOrbActivity(false);
+        document.getElementById('call-status-label').innerText = "Listening...";
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function animateOrbActivity(isActive) {
+      const orb = document.getElementById('neural-live-orb');
+      const glow = document.getElementById('orb-ambient-glow');
+      if (isActive) {
+        orb.style.transform = 'scale(1.18)';
+        glow.style.transform = 'scale(1.4)';
+      } else {
+        orb.style.transform = 'scale(1.0)';
+        glow.style.transform = 'scale(1.0)';
+      }
+    }
+
+    function toggleCallMicrophone() {
+      STATE.liveCall.isMuted = !STATE.liveCall.isMuted;
+      const btn = document.getElementById('call-mic-btn');
+      if (STATE.liveCall.isMuted) {
+        btn.classList.add('bg-red-500', 'text-white');
+        btn.classList.remove('bg-white/10');
+        if (STATE.liveCall.recognition) {
+          try { STATE.liveCall.recognition.stop(); } catch(e){}
+        }
+        document.getElementById('call-status-label').innerText = "Microphone muted";
+      } else {
+        btn.classList.remove('bg-red-500', 'text-white');
+        btn.classList.add('bg-white/10');
+        if (STATE.liveCall.recognition) {
+          try { STATE.liveCall.recognition.start(); } catch(e){}
+        }
+        document.getElementById('call-status-label').innerText = "Listening...";
+      }
+    }
+
+    function toggleCallSpeaker() {
+      STATE.liveCall.speakerEnabled = !STATE.liveCall.speakerEnabled;
+      const btn = document.getElementById('call-speaker-btn');
+      if (!STATE.liveCall.speakerEnabled) {
+        btn.classList.add('bg-amber-600', 'text-white');
+        btn.classList.remove('bg-white/10');
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+      } else {
+        btn.classList.remove('bg-amber-600', 'text-white');
+        btn.classList.add('bg-white/10');
+      }
+    }
+
+    async function toggleCallScreenShare() {
+      const container = document.getElementById('call-video-container');
+      const video = document.getElementById('call-screen-video');
+      const btnText = document.getElementById('call-share-btn-text');
+
+      if (STATE.liveCall.screenStream) {
+        STATE.liveCall.screenStream.getTracks().forEach(t => t.stop());
+        STATE.liveCall.screenStream = null;
+        container.classList.add('hidden');
+        btnText.textContent = "Share Screen";
+      } else {
+        try {
+          const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+          STATE.liveCall.screenStream = stream;
+          video.srcObject = stream;
+          container.classList.remove('hidden');
+          btnText.textContent = "Stop Share";
+
+          stream.getVideoTracks()[0].onended = () => {
+            container.classList.add('hidden');
+            btnText.textContent = "Share Screen";
+            STATE.liveCall.screenStream = null;
+          };
+        } catch (err) {
+          console.warn("Screen share cancelled", err);
+        }
+      }
+    }
+
+    // =========================================================================
+    // PROMPT SUBMISSION & ORCHESTRATION
+    // =========================================================================
+    function autoResizeInput(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+      
+      const sendBtn = document.getElementById('send-btn');
+      const hasInput = textarea.value.trim().length > 0 || STATE.pendingAttachments.length > 0;
+      
+      if (hasInput) {
+        sendBtn.classList.remove('hidden');
+      } else {
+        sendBtn.classList.add('hidden');
+      }
+    }
+
+    function handleInputKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitMessage();
+      }
+    }
+
+    function setPromptAndSend(text) {
+      document.getElementById('prompt-input').value = text;
+      autoResizeInput(document.getElementById('prompt-input'));
+      submitMessage();
+    }
+
+    async function submitMessage() {
+      const input = document.getElementById('prompt-input');
+      const text = input.value.trim();
+      
+      if (!text && STATE.pendingAttachments.length === 0) return;
+      if (STATE.isGenerating) return;
+
+      if (!STATE.activeChatId || !STATE.chats[STATE.activeChatId]) {
+        const newId = 'chat_' + Date.now();
+        STATE.chats[newId] = {
+          id: newId,
+          title: text ? text.slice(0, 32) : 'Multimodal chat',
+          createdAt: new Date().toISOString(),
+          messages: []
+        };
+        STATE.activeChatId = newId;
+      }
+
+      document.getElementById('empty-state-hero').classList.add('hidden');
+      document.getElementById('messages-container').classList.remove('hidden');
+
+      const chat = STATE.chats[STATE.activeChatId];
+      if (chat.messages.length === 0 && text) {
+        chat.title = text.slice(0, 30);
+      }
+
+      const currentAttachments = [...STATE.pendingAttachments];
+      STATE.pendingAttachments = [];
+      renderAttachmentChips();
+      input.value = '';
+      autoResizeInput(input);
+
+      const userMessageObj = {
+        role: 'user',
+        text: text,
+        attachments: currentAttachments
+      };
+      chat.messages.push(userMessageObj);
+      appendMessageBubble('user', text, currentAttachments, null, true);
+      saveChats();
+      renderRecentChats();
+      scrollChatToBottom();
+
+      if (text.startsWith('/image ')) {
+        const imgPrompt = text.replace('/image ', '').trim();
+        await handleInChatImageGeneration(imgPrompt);
+        return;
+      }
+
+      STATE.isGenerating = true;
+      const aiBubble = appendMessageBubble('assistant', '', null, null, true, true);
+      scrollChatToBottom();
+
+      try {
+        const parts = [];
+
+        currentAttachments.forEach(att => {
+          if (att.type === 'image' && att.data) {
+            parts.push({
+              inlineData: {
+                mimeType: att.mimeType,
+                data: att.data
+              }
+            });
+          } else if (att.type === 'file') {
+            parts.push({
+              text: `[Attached Document: ${att.name}]\n${att.data}\n`
+            });
+          }
+        });
+
+        if (text) {
+          parts.push({ text: text });
+        } else {
+          parts.push({ text: "Please review the attached media or file." });
+        }
+
+        const payload = {
+          contents: [{ parts: parts }],
+          systemInstruction: {
+            parts: [{ text: SYSTEM_INSTRUCTION }]
+          }
+        };
+
+        if (STATE.webSearchEnabled) {
+          payload.tools = [{ "google_search": {} }];
+        }
+
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Placardio Neural Engine error: HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        const candidate = result.candidates?.[0];
+        let replyText = candidate?.content?.parts?.[0]?.text || "I was unable to process this request. Please try again.";
+
+        let sources = [];
+        if (candidate?.groundingMetadata?.groundingAttributions) {
+          sources = candidate.groundingMetadata.groundingAttributions
+            .map(a => ({ uri: a.web?.uri, title: a.web?.title }))
+            .filter(s => s.uri && s.title);
+        }
+
+        const aiMessageObj = {
+          role: 'assistant',
+          text: replyText,
+          sources: sources
+        };
+        chat.messages.push(aiMessageObj);
+        saveChats();
+
+        finalizeAiBubble(aiBubble, replyText, sources);
+
+      } catch (err) {
+        console.error("Placardio generation failure:", err);
+        finalizeAiBubble(aiBubble, `**Placardio Neural Engine Notice:**\nAn error occurred while communicating with the neural processor. Please check your connection and retry.\n\n*Error details: ${err.message}*`);
+      } finally {
+        STATE.isGenerating = false;
+        scrollChatToBottom();
+      }
+    }
+
+    async function handleInChatImageGeneration(prompt) {
+      STATE.isGenerating = true;
+      const aiBubble = appendMessageBubble('assistant', `*Placardio Creative Diffusion is synthesizing: "${prompt}"...*`, null, null, true, true);
+      scrollChatToBottom();
+
+      try {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+        const payload = {
+          contents: [{
+            role: 'user',
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            responseModalities: ['IMAGE'],
+            imageConfig: { aspectRatio: "1:1" }
+          }
+        };
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        const part = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+
+        if (part && part.inlineData?.data) {
+          const imgUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+          const markdownImg = `Here is your synthesized image for **"${prompt}"**:\n\n<img src="${imgUrl}" class="rounded-2xl max-w-full md:max-w-md shadow-md border border-slate-200 my-2" alt="Generated Visual" />\n\n[Download High-Res](${imgUrl})`;
+          
+          STATE.chats[STATE.activeChatId].messages.push({
+            role: 'assistant',
+            text: markdownImg
+          });
+          saveChats();
+          finalizeAiBubble(aiBubble, markdownImg);
+        } else {
+          throw new Error("Unable to synthesize image data.");
+        }
+      } catch (err) {
+        finalizeAiBubble(aiBubble, `Image generation failed: ${err.message}`);
+      } finally {
+        STATE.isGenerating = false;
+        scrollChatToBottom();
+      }
+    }
+
+    // =========================================================================
+    // MESSAGE RENDERING
+    // =========================================================================
+    function appendMessageBubble(role, text, attachments = null, sources = null, animate = false, isTyping = false) {
+      const container = document.getElementById('messages-container');
+      const bubble = document.createElement('div');
+      bubble.className = `flex gap-3 md:gap-4 ${role === 'user' ? 'justify-end' : 'justify-start'} ${animate ? 'animate-in fade-in' : ''}`;
+
+      if (role === 'user') {
+        let attachmentsHtml = '';
+        if (attachments && attachments.length > 0) {
+          attachmentsHtml = '<div class="flex flex-wrap gap-2 mb-2 justify-end">';
+          attachments.forEach(att => {
+            if (att.type === 'image') {
+              attachmentsHtml += `<img src="${att.previewUrl || ('data:' + att.mimeType + ';base64,' + att.data)}" class="w-24 h-24 rounded-xl object-cover border border-white/20 shadow-xs">`;
+            } else {
+              attachmentsHtml += `<div class="px-2.5 py-1 bg-white/20 text-white rounded-lg text-xs flex items-center space-x-1"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg><span class="truncate max-w-[120px]">${att.name}</span></div>`;
+            }
+          });
+          attachmentsHtml += '</div>';
+        }
+
+        bubble.innerHTML = `
+          <div class="max-w-[85%] md:max-w-[70%]">
+            ${attachmentsHtml}
+            ${text ? `<div class="bg-[#0077f5] text-white px-5 py-3.5 rounded-[22px] rounded-tr-sm text-[0.95rem] shadow-xs leading-relaxed whitespace-pre-wrap">${escapeHtml(text)}</div>` : ''}
+          </div>
+        `;
+      } else {
+        bubble.innerHTML = `
+          <div class="w-8 h-8 rounded-xl placard-logo-gradient flex items-center justify-center shrink-0 mt-1 shadow-xs">
+            <span class="text-white font-extrabold text-sm">P</span>
+          </div>
+          <div class="flex-1 max-w-[92%] overflow-hidden">
+            <div class="text-xs font-semibold text-slate-500 mb-1 flex items-center space-x-2">
+              <span class="text-slate-800">Placardio AI</span>
+              <span class="text-[10px] text-slate-400 font-normal">Proprietary</span>
+            </div>
+            <div class="prose-placard text-slate-800 text-[0.95rem] leading-relaxed break-words ai-content-body">
+              ${isTyping ? '<span class="typing-cursor"></span>' : renderMarkdownSafe(text)}
+            </div>
+            <div class="sources-container mt-3 text-xs"></div>
+          </div>
+        `;
+      }
+
+      container.appendChild(bubble);
+      return bubble;
+    }
+
+    function finalizeAiBubble(bubble, text, sources = null) {
+      const contentEl = bubble.querySelector('.ai-content-body');
+      if (contentEl) {
+        contentEl.innerHTML = renderMarkdownSafe(text);
+        contentEl.querySelectorAll('pre code').forEach((block) => {
+          hljs.highlightElement(block);
+          attachCodeBlockToolbar(block);
+        });
+      }
+
+      if (sources && sources.length > 0) {
+        const srcEl = bubble.querySelector('.sources-container');
+        let srcHtml = '<div class="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1.5"><span class="text-[11px] font-semibold text-slate-400">Sources:</span>';
+        sources.slice(0, 4).forEach((s) => {
+          srcHtml += `<a href="${s.uri}" target="_blank" rel="noopener" class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] truncate max-w-[180px]">
+            <svg class="w-3 h-3 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            <span class="truncate">${s.title}</span>
+          </a>`;
+        });
+        srcHtml += '</div>';
+        srcEl.innerHTML = srcHtml;
+      }
+    }
+
+    function attachCodeBlockToolbar(codeBlock) {
+      const pre = codeBlock.parentNode;
+      if (pre.querySelector('.code-toolbar')) return;
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'code-toolbar absolute top-2 right-2 flex items-center space-x-1.5 z-10';
+      
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'px-2 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition border border-slate-700 flex items-center space-x-1';
+      copyBtn.innerHTML = `<span>Copy</span>`;
+      copyBtn.onclick = () => {
+        copyTextFallback(codeBlock.innerText);
+        copyBtn.innerHTML = `<span class="text-emerald-400">Copied!</span>`;
+        setTimeout(() => { copyBtn.innerHTML = `<span>Copy</span>`; }, 2000);
+      };
+
+      const runBtn = document.createElement('button');
+      runBtn.className = 'px-2 py-1 text-[11px] bg-[#0077f5] hover:bg-blue-600 text-white rounded-md transition font-medium flex items-center space-x-1';
+      runBtn.innerHTML = `<span>Open in Runner</span>`;
+      runBtn.onclick = () => {
+        const codeText = codeBlock.innerText;
+        document.getElementById('code-editor-input').value = codeText;
+        switchWorkspace('code');
+        executeCode();
+      };
+
+      toolbar.appendChild(copyBtn);
+      toolbar.appendChild(runBtn);
+      pre.style.position = 'relative';
+      pre.appendChild(toolbar);
+    }
+
+    function copyTextFallback(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+      } catch (e) {
+        console.warn('Clipboard copy error', e);
+      }
+      document.body.removeChild(ta);
+    }
+
+    function renderMarkdownSafe(text) {
+      if (!text) return '';
+      return marked.parse(text);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function scrollChatToBottom() {
+      const area = document.getElementById('chat-scroll-area');
+      const anchor = document.getElementById('scroll-bottom-anchor');
+      if (anchor) {
+        anchor.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        area.scrollTop = area.scrollHeight;
+      }
+    }
+
+    // =========================================================================
+    // CODE ASSISTANT & LIVE RUNNER
+    // =========================================================================
+    function setupSampleCode() {
+      const sample = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at 50% 30%, #001229, #020617);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+      overflow: hidden;
+    }
+    .badge {
+      background: linear-gradient(135deg, #18c8e8, #0077f5);
+      padding: 12px 28px;
+      border-radius: 9999px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 25px rgba(0, 119, 245, 0.4);
+      letter-spacing: -0.5px;
+      animation: float 3s ease-in-out infinite;
+    }
+    .card {
+      margin-top: 24px;
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      max-width: 320px;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="badge">Placardio Code Studio</div>
+  <div class="card">
+    <h3 style="margin: 0 0 8px 0; color: #38bdf8;">Interactive Sandbox</h3>
+    <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">
+      Edit this HTML/CSS/JS and click "Run Code" to view instantaneous live changes!
+    </p>
+  </div>
+</body>
+</html>`;
+      document.getElementById('code-editor-input').value = sample;
+    }
+
+    function resetSampleCode() {
+      setupSampleCode();
+      executeCode();
+    }
+
+    function executeCode() {
+      const code = document.getElementById('code-editor-input').value;
+      const iframe = document.getElementById('code-output-frame');
+      iframe.srcdoc = code;
+    }
+
+    // =========================================================================
+    // IMAGE STUDIO WORKSPACE
+    // =========================================================================
+    async function generateImageFromStudio() {
+      const input = document.getElementById('image-studio-prompt');
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      const btn = document.getElementById('image-studio-btn');
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="4" class="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg><span>Synthesizing...</span>`;
+
+      const ratioEl = document.querySelector('input[name="image-ratio"]:checked');
+      const ratio = ratioEl ? ratioEl.value : '1:1';
+
+      try {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+        const payload = {
+          contents: [{
+            role: 'user',
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            responseModalities: ['IMAGE'],
+            imageConfig: { aspectRatio: ratio }
+          }
+        };
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        const part = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+
+        if (part && part.inlineData?.data) {
+          const imgUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+          appendStudioCard(prompt, imgUrl, ratio);
+        } else {
+          alertBox("Could not generate image. Please refine your prompt.");
+        }
+      } catch (err) {
+        console.error("Studio synthesis failure:", err);
+        alertBox("Studio Error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg><span>Synthesize</span>`;
+      }
+    }
+
+    function appendStudioCard(prompt, url, ratio) {
+      const container = document.getElementById('image-gallery-container');
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-3xl p-4 border border-[#e4ecf7] shadow-xs space-y-3';
+      card.innerHTML = `
+        <div class="overflow-hidden rounded-2xl bg-slate-100 flex items-center justify-center">
+          <img src="${url}" class="w-full object-cover rounded-2xl hover:scale-105 transition-transform duration-300" alt="Generated Visual">
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-slate-800 font-semibold truncate flex-1 pr-2">${escapeHtml(prompt)}</div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">${ratio}</span>
+        </div>
+        <div class="flex items-center justify-end space-x-2 pt-1 border-t border-slate-100">
+          <a href="${url}" download="placardio-ai-${Date.now()}.png" class="px-3 py-1.5 bg-[#0077f5] hover:bg-blue-600 text-white text-xs font-semibold rounded-xl flex items-center space-x-1 shadow-xs">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            <span>Download</span>
+          </a>
+        </div>
+      `;
+      container.prepend(card);
+    }
+
+    function alertBox(msg) {
+      const box = document.createElement('div');
+      box.className = 'fixed bottom-6 right-6 bg-slate-900 text-white text-xs px-4 py-3 rounded-2xl shadow-xl z-50 animate-in fade-in flex items-center space-x-2 border border-slate-700';
+      box.innerHTML = `<span>${escapeHtml(msg)}</span>`;
+      document.body.appendChild(box);
+      setTimeout(() => { box.remove(); }, 4000);
+    }
+  </script>
+</body>
+</html>
