@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Placardio AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(0, 180, 219, 0.4)); }
+      50% { transform: scale(1.06); filter: drop-shadow(0 0 45px rgba(0, 131, 176, 0.8)); }
+    }
+    .animate-glow { animation: pulseGlow 3s ease-in-out infinite; }
+
+
+    @keyframes liveWave {
+      0%, 100% { height: 10px; }
+      50% { height: 26px; }
+    }
+    .calling-bars .b-1 { animation: liveWave 0.7s ease-in-out infinite; }
+    .calling-bars .b-2 { animation: liveWave 0.7s ease-in-out infinite 0.2s; }
+    .calling-bars .b-3 { animation: liveWave 0.7s ease-in-out infinite 0.4s; }
+  </style>
+</head>
+<body class="bg-white text-[#1e1e1e] flex h-screen w-screen overflow-hidden select-none">
+
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-[#ececec] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200">
+    <div class="p-4 flex flex-col gap-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchWorkspace('chat')">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#00b4db] to-[#0083b0] flex items-center justify-center text-white font-bold text-xl shadow-md">
+            P
+          </div>
+          <span class="text-xl font-bold tracking-tight text-[#111]">Plakadio <span class="text-[#0083b0]">AI</span></span>
+        </div>
+        <button onclick="toggleSidebar()" class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 md:hidden">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+
+      <button onclick="startNewChat()" class="w-full bg-[#f0f4f9] hover:bg-[#e4ebf5] text-gray-800 text-sm font-medium py-3 px-4 rounded-full flex items-center justify-between transition shadow-sm">
+        <div class="flex items-center gap-2.5">
+          <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          <span>New chat</span>
+        </div>
+        <span class="text-xs text-gray-400 font-mono">⌘ K</span>
+      </button>
+
+
+      <div>
+        <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 px-3">WORKSPACE</div>
+        <nav class="flex flex-col gap-1">
+          <button id="nav-chat" onclick="switchWorkspace('chat')" class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-sm font-semibold bg-[#eaf3ff] text-[#0066cc] transition">
+            <svg class="w-5 h-5 text-[#6366f1]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4m-4 5h.01m8 0h.01"/></svg>
+            <span>AI Assistant</span>
+          </button>
+
+
+          <button id="nav-code" onclick="switchWorkspace('code')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+            <div class="flex items-center gap-3.5">
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+              <span>Code assistant</span>
+            </div>
+            <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-md bg-[#2d1b4e] text-[#d8b4fe]">BETA</span>
+          </button>
+
+
+          <button id="nav-image" onclick="switchWorkspace('image')" class="w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>Image studio</span>
+          </button>
+
+
+          <button id="nav-plugins" onclick="switchWorkspace('plugins')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
+            <div class="flex items-center gap-3.5">
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+              <span>Plugin hub</span>
+            </div>
+            <span class="w-5 h-5 rounded-md bg-[#1f2937] text-white text-[11px] font-bold flex items-center justify-center">4</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+
+    <div class="p-4 border-t border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-[#5b21b6] text-white flex items-center justify-center font-bold text-sm">P</div>
+        <div class="text-xs">
+          <div class="font-bold text-gray-800">Parthiv Royal</div>
+          <div class="text-gray-400">Creator & Master</div>
+        </div>
+      </div>
+      <button onclick="openAuthModal()" class="text-xs text-gray-500 hover:text-black font-semibold">Sign out</button>
+    </div>
+  </aside>
+
+
+  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/30 z-30 hidden md:hidden"></div>
+
+
+  <!-- ================= MAIN VIEWPORT ================= -->
+  <main class="flex-1 md:ml-72 flex flex-col h-full bg-white relative overflow-hidden">
+    
+    <!-- Top Bar -->
+    <header class="h-16 border-b border-[#ececec] bg-white flex items-center justify-between px-4 sm:px-6 z-10">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg md:hidden">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <span class="font-semibold text-gray-800 text-base hidden sm:inline">Placardio AI</span>
+        
+        <div class="relative inline-block text-left">
+          <button class="flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
+            <span>Placardio Flash</span>
+            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+        </div>
+      </div>
+
+
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-[#5b21b6] text-white flex items-center justify-center font-bold text-xs">P</div>
+        <button onclick="openAuthModal()" class="text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 px-3.5 py-1.5 rounded-full shadow-sm">
+          Sign out
+        </button>
+        <button onclick="startNewChat()" class="p-1.5 text-gray-500 hover:text-gray-900 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        </button>
+      </div>
+    </header>
+
+
+    <!-- Notification Banner Card -->
+    <div id="notif-bar" class="w-full px-4 pt-3 flex justify-center">
+      <div class="w-full max-w-sm bg-[#161618] rounded-[24px] p-4 shadow-xl flex items-center justify-between border border-white/5">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-lg bg-black/60 border border-white/20 flex items-center justify-center text-white">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </div>
+            <span class="text-white font-medium text-sm">Placardio AI</span>
+          </div>
+          <span class="text-neutral-400 text-[11px] pl-8">Oct 25, 6:24 PM</span>
+        </div>
+        <button onclick="openLiveVoiceMode()" class="bg-[#1d4ed8] hover:bg-[#2563eb] text-white font-medium text-xs px-4 py-2 rounded-full transition shadow-md">
+          Open
+        </button>
+      </div>
+    </div>
+
+
+    <!-- Workspace: Chat View -->
+    <div id="workspace-chat" class="flex-1 flex flex-col h-[calc(100%-8rem)] overflow-hidden">
+      <div id="chat-scroller" class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col">
+        
+        <!-- Hero Initial Greeting -->
+        <div id="hero-greeting" class="my-auto flex flex-col items-center justify-center text-center py-6">
+          <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-[#00b4db] to-[#0083b0] flex items-center justify-center text-white font-extrabold text-4xl shadow-xl mb-6">
+            P
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-2">
+            Your move,<br><span class="text-black">Parthiv Royal!</span>
+          </h1>
+          <p class="text-xs text-gray-400 mt-1 max-w-sm mb-6">
+            Ask any question, generate code, attach files/photos, or talk live.
+          </p>
+
+
+          <!-- 4 Suggestion Cards -->
+          <div class="w-full max-w-sm flex flex-col gap-2.5">
+            <button onclick="sendQuickPrompt('Who made you?')" class="w-full text-left p-3.5 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm">
+              <div class="font-semibold text-gray-800 text-sm">Who made you?</div>
+              <div class="text-xs text-gray-400">Learn about Parthiv Royal Reddivari</div>
+            </button>
+            <button onclick="switchWorkspace('code')" class="w-full text-left p-3.5 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm">
+              <div class="font-semibold text-gray-800 text-sm">Code assistant test</div>
+              <div class="text-xs text-gray-400">Test code inside live sandbox</div>
+            </button>
+            <button onclick="switchWorkspace('image')" class="w-full text-left p-3.5 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm">
+              <div class="font-semibold text-gray-800 text-sm">Synthesize visual concept</div>
+              <div class="text-xs text-gray-400">Autonomous creative diffusion</div>
+            </button>
+            <button onclick="sendQuickPrompt('Explore capabilities')" class="w-full text-left p-3.5 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 transition shadow-sm">
+              <div class="font-semibold text-gray-800 text-sm">Explore capabilities</div>
+              <div class="text-xs text-gray-400">Full multi-modal support</div>
+            </button>
+          </div>
+        </div>
+
+
+        <div id="message-list" class="max-w-2xl w-full mx-auto flex flex-col gap-4 hidden"></div>
+      </div>
+
+
+      <!-- File Attachment Strip -->
+      <div id="attachment-strip" class="max-w-2xl w-full mx-auto px-4 hidden">
+        <div id="attachment-preview" class="flex items-center gap-2 pb-2 overflow-x-auto"></div>
+      </div>
+
+
+      <!-- Floating Bottom Pill Input Container -->
+      <div class="p-4 bg-transparent flex flex-col items-center gap-3">
+        <div class="max-w-xl w-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-200 p-2 sm:p-3 flex flex-col gap-2">
+          <input 
+            type="text" 
+            id="user-prompt" 
+            placeholder="Message Placardio AI..." 
+            class="w-full bg-transparent px-3 py-1.5 text-sm sm:text-base outline-none text-gray-800"
+            onkeydown="if(event.key === 'Enter') sendMessage();"
+          />
+
+
+          <div class="flex items-center justify-between px-2 pt-1 border-t border-gray-100">
+            <!-- Left Tools -->
+            <div class="flex items-center gap-2">
+              <button onclick="alert('Web Search Engine Active')" title="Live Web" class="text-gray-500 hover:text-blue-600 p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+              </button>
+              <button onclick="document.getElementById('file-picker').click()" title="Attach Images/Photos" class="text-gray-500 hover:text-blue-600 p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              </button>
+              <button onclick="document.getElementById('file-picker').click()" title="Attach Files" class="text-gray-500 hover:text-blue-600 p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+              </button>
+              
+              <!-- Language Select -->
+              <select id="voice-lang-select" class="text-[11px] font-medium bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 outline-none text-gray-700">
+                <option value="te-IN">తెలుగు (Telugu)</option>
+                <option value="en-IN" selected>English</option>
+                <option value="hi-IN">हिन्दी (Hindi)</option>
+                <option value="ta-IN">தமிழ் (Tamil)</option>
+                <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+              </select>
+            </div>
+
+
+            <input type="file" id="file-picker" multiple class="hidden" onchange="handleFileSelect(this)">
+
+
+            <!-- Right Buttons: Mic & Waveform -->
+            <div class="flex items-center gap-2">
+              <!-- Direct Voice Typing Mic -->
+              <button 
+                id="voice-mic-btn" 
+                onclick="toggleDirectVoiceTyping()" 
+                title="Direct Voice Typing" 
+                class="w-9 h-9 flex items-center justify-center rounded-full text-gray-700 hover:bg-gray-100 transition"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-14 0m14 0a7 7 0 00-7-7m-7 7a7 7 0 007 7m0 0v4m-4 0h8m-4-8a3 3 0 01-3-3V6a3 3 0 116 0v5a3 3 0 01-3 3z"/></svg>
+              </button>
+
+
+              <!-- Distinctive Blue Waveform Live Mode Button -->
+              <button 
+                id="live-voice-btn" 
+                onclick="openLiveVoiceMode()" 
+                title="Live Voice Mode" 
+                class="w-10 h-10 bg-[#def0ff] hover:bg-[#cde7fe] rounded-full flex items-center justify-center gap-[3px] transition active:scale-95 shadow-sm"
+              >
+                <div class="w-[3px] h-3.5 bg-black rounded-full"></div>
+                <div class="w-[3px] h-5.5 bg-black rounded-full"></div>
+                <div class="w-[3px] h-3.5 bg-black rounded-full"></div>
+              </button>
+
+
+              <!-- Send Button -->
+              <button onclick="sendMessage()" class="p-2 rounded-full bg-[#0083b0] text-white hover:bg-[#00739c] transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Floating Sparkle FAB Widget -->
+        <button onclick="openLiveVoiceMode()" class="w-13 h-13 p-3.5 rounded-full bg-[#1e222b] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="url(#sparkle_grad)" />
+            <defs>
+              <linearGradient id="sparkle_grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#38bdf8"/>
+                <stop offset="0.5" stop-color="#ec4899"/>
+                <stop offset="1" stop-color="#facc15"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </button>
+        <div class="text-[10px] text-gray-400 -mt-1 font-medium">Placardio.ai created by Parthiv Royal Reddivari. Independent Neural Architecture.</div>
+      </div>
+    </div>
+
+
+    <!-- Workspace: Code Sandbox -->
+    <div id="workspace-code" class="flex-1 flex-col h-[calc(100%-4rem)] p-4 sm:p-6 gap-4 overflow-y-auto hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-gray-900">Code Assistant (Sandbox)</h2>
+        <button onclick="runCodeInSandbox()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold">Run Code</button>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
+        <textarea id="code-editor-area" class="w-full bg-gray-900 text-emerald-400 font-mono text-xs p-4 rounded-2xl outline-none resize-none">
+// Placardio Code Assistant Sandbox
+document.body.innerHTML = `
+  <div style="font-family: sans-serif; text-align: center; padding: 40px;">
+    <h2 style="color: #0083b0;">Placardio Code Engine Active</h2>
+    <p>Voice command and runtime execution running cleanly.</p>
+  </div>
+`;
+        </textarea>
+        <iframe id="sandbox-iframe" class="w-full h-full border rounded-2xl bg-white"></iframe>
+      </div>
+    </div>
+
+
+    <!-- Workspace: Image Studio -->
+    <div id="workspace-image" class="flex-1 flex-col h-[calc(100%-4rem)] p-4 sm:p-8 max-w-4xl mx-auto w-full gap-6 overflow-y-auto hidden">
+      <h2 class="text-2xl font-bold text-gray-900">Creative Image Studio</h2>
+      <div class="bg-white p-4 rounded-2xl border border-gray-200 flex gap-3 shadow-sm">
+        <input type="text" id="img-prompt-input" placeholder="Describe image to generate..." class="flex-1 text-sm outline-none px-2"/>
+        <button onclick="generateImageCard()" class="px-5 py-2.5 bg-[#0083b0] text-white rounded-xl text-xs font-semibold">Synthesize</button>
+      </div>
+      <div id="image-gallery" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+    </div>
+
+
+    <!-- Workspace: Plugins -->
+    <div id="workspace-plugins" class="flex-1 flex-col h-[calc(100%-4rem)] p-4 sm:p-8 max-w-4xl mx-auto w-full gap-4 overflow-y-auto hidden">
+      <h2 class="text-2xl font-bold text-gray-900">Plugin Hub (4 Active)</h2>
+   
